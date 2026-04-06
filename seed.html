@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="de">
+    <head>
+        <title>Seed</title>
+        <meta charset="UTF-8">
+        <style>
+            body{
+                background-color: black;
+            }
+            #main {
+                display: grid;
+                grid-template-columns: repeat(16, 1fr);
+                grid-template-rows: repeat(16, 1fr);
+                width: 500px;
+                height: 500px;
+                border: 2px solid black;
+            }/*
+            .cell {
+                border: 1px solid #ddd;
+                background-color: white;
+            }*/
+        </style>
+    </head>
+    <body>
+        <div id="main">
+
+        </div>
+        <input type="text" id="seed"><button onclick="Seeding();">Anwenden</button>
+        <hr>
+        <input type="color" id="farbe">
+        <script>
+            // Generate Pattern //
+            let bisher = 0;
+            let stellen = 0;
+            let ziel = 256;
+            let wert = 1;
+            let startColor = '#ffffff';
+
+            document.getElementById('farbe').addEventListener('change',(e) => {
+                bisher = 0;
+                stellen = 0;
+                ziel = 256;
+                wert = 1;
+                document.getElementById('main').innerHTML = '';
+                startColor = document.getElementById('farbe').value;
+                console.warn(document.getElementById('farbe').value);
+                make();
+            });
+
+            function reset(){
+                bisher = 0;
+                stellen = 0;
+                ziel = 256;
+                wert = 1;
+                startColor = '#0000ff';
+                document.getElementById('main').innerHTML = '';
+                make();
+            }
+            function make(){
+                const diver = document.createElement('button');
+                diver.id = wert;
+                diver.dataset.hue = 0;
+                diver.dataset.color = startColor;
+                diver.style = 'border: 1px solid #ccc; background-color: ' + startColor + '; width: 25px; height: 25px;';
+                diver.style.backgroundColor = diver.dataset.hue;
+                diver.onclick = () => {alert(diver.id);};
+                document.getElementById('main').appendChild(diver);
+                if(document.getElementById(diver.id)){
+                    console.log('Diver mit id ' + diver.id + ' und hue ' + diver.dataset.hue + ' erstellt');
+                }
+                //if(stner.includes(bisher+1)){document.body.appendChild(document.createElement('br'));}
+                readyCheck();
+            }
+            let stner = [
+                16,
+                32,
+                48,
+                64,
+                80,
+                96,
+                112,
+                128,
+                144,
+                160,
+                176,
+                192,
+                208,
+                224,
+                240,
+                256
+            ]
+            function readyCheck() {
+                wert++;
+                bisher++;
+                console.log(bisher);
+                if(bisher === ziel){
+                    console.log('Erfolg, ziel von ' + ziel + ' erreicht mit ' + bisher + ' divern');
+                }else {
+                    setTimeout(make,10);
+                }
+            }
+            reset();
+            // Seeding //
+            const seedInput = document.getElementById('seed');
+            
+            function Seeding(){
+                const divs = document.querySelectorAll('button[data-hue]');
+                let seed = seedInput.value.trim();
+                seed = seed.toLowerCase();
+                console.log('Vorher: ' + seed);
+                seed = seed.replaceAll('a','1');
+                seed = seed.replaceAll('b','2');
+                seed = seed.replaceAll('c','3');
+                seed = seed.replaceAll('d','4');
+                seed = seed.replaceAll('e','5');
+                seed = seed.replaceAll('f','6');
+                seed = seed.replaceAll('g','7');
+                seed = seed.replaceAll('h','8');
+                seed = seed.replaceAll('i','9');
+                seed = seed.replaceAll('j','10');
+                seed = seed.replaceAll('k','11');
+                seed = seed.replaceAll('l','12');
+                seed = seed.replaceAll('m','13');
+                seed = seed.replaceAll('n','14');
+                seed = seed.replaceAll('o','15');
+                seed = seed.replaceAll('p','16');
+                seed = seed.replaceAll('q','17');
+                seed = seed.replaceAll('r','18');
+                seed = seed.replaceAll('s','19');
+                seed = seed.replaceAll('t','20');
+                seed = seed.replaceAll('u','21');
+                seed = seed.replaceAll('v','22');
+                seed = seed.replaceAll('w','23');
+                seed = seed.replaceAll('x','24');
+                seed = seed.replaceAll('y','25');
+                seed = seed.replaceAll('z','26');
+                seed = seed.replaceAll('!','27');
+                seed = seed.replaceAll('?','28');
+                seed = seed.replaceAll('"','29');
+                seed = seed.replaceAll('§','30');
+                seed = seed.replaceAll('$','31');
+                seed = seed.replaceAll('%','32');
+                seed = seed.replaceAll('&','33');
+                seed = seed.replaceAll('/','34');
+                seed = seed.replaceAll('(','35');
+                seed = seed.replaceAll(')','36');
+                seed = seed.replaceAll('=','37');
+                seed = seed.replaceAll('+','38');
+                seed = seed.replaceAll('*','39');
+                seed = seed.replaceAll('~','40');
+                seed = seed.replaceAll(`'`,'41');
+                seed = seed.replaceAll('`','42');
+                seed = seed.replaceAll('-','43');
+                seed = seed.replaceAll('_','44');
+                seed = seed.replaceAll('.','45');
+                seed = seed.replaceAll(':','46');
+                seed = seed.replaceAll(',','47');
+                seed = seed.replaceAll(';','48');
+                seed = seed.replaceAll('<','49');
+                seed = seed.replaceAll('>','50');
+                seed = seed.replaceAll('|','51');
+                seed = seed.replaceAll('°','52');
+                seed = seed.replaceAll('^','53');
+                seed = seed.replaceAll(` `,'54');
+
+                console.log('Nachher: ' + seed);
+                console.log(divs);
+
+                divs.forEach((e) => {
+                    let seeded = Number(seed);
+                    if(seeded >= 360){
+                        seeded = seeded/e.id;
+                        seeded = seeded.toFixed(0);
+                    }else {
+                        seeded = seeded+e.id;
+                        if(seeded >= 360){
+                            seeded = seeded/e.id;
+                            seeded = seeded.toFixed(0);
+                        }
+                    }
+                    e.style.filter = 'hue-rotate(' + seeded + 'deg)';
+                    e.dataset.hue = seeded;
+                    console.log(seeded);
+                });
+            }
+            
+        </script>
+    </body>
+</html>
