@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Three.js Voxel Fix</title>
+    <style>
+        body { margin: 0; background: #000; overflow: hidden; font-family: sans-serif; }
+        #ui { position: absolute; top: 10px; left: 10px; z-index: 10; background: rgba(0,0,0,0.8); padding: 15px; color: white; border-radius: 8px; border: 1px solid #444; }
+        input, button { padding: 8px; margin-top: 5px; border: none; border-radius: 4px; }
+        button { background: #4a7023; color: white; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <div id="ui">
+        Seed:<br>
+        <input type="text" id="seedInput" value="TestWelt">
+        <button onclick="generateWorld()">Generieren</button>
+    </div>
+ 
+    <!-- Wir laden die "Single File" Versionen ohne Module 
+    <script src="https://cloudflare.com"></script>
+     OrbitControls als separates Skript (Global)
+    <script src="https://jsdelivr.net"></script> -->
+
+    <script src="https://cdn.jsdelivr.net/gh/paulmasson/threejs-with-controls@r121/build/three.min.js"></script>
+
+    <script>
+        // Da wir keine Module nutzen, liegen THREE und OrbitControls global vor
+        let scene, camera, renderer, controls, instancedMesh;
+        const size = 16;
+        const colors = [0x000000, 0x1e1e1e, 0x555555, 0x7e7e7e, 0xffffff];
+
+        function init() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(15, 15, 15);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+
+            // In der alten Global-Variante heißt es THREE.OrbitControls
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
+            scene.add(ambientLight);
+            const sunLight = new THREE.DirectionalLight(0xffffff, 1.5);
+            sunLight.position.set(10, 20, 10);
+            scene.add(sunLight);
+
+            generateWorld();
+            animate();
+        }
+
+        function hash(str) {
+            let h = 0;
+            for (let i = 0; i < str.length; i++) h = Math.imul(31, h) + str.charCodeAt(i) | 0;
+            return h;
+        }
+
+        function generateWorld() {
+            if (instancedMesh) scene.remove(instancedMesh);
+
+            const seedVal = document.getElementById('seedInput').value;
+            const h = hash(seedVal);
+
+            const geometry = new THREE.BoxGeometry(1, 1, 1);
+            const material = new THREE.MeshLambertMaterial();
+            
+            // Wir erstellen das Mesh
+            instancedMesh = new THREE.InstancedMesh(geometry, material, size * size * size);
+            
+            let count = 0;
+            const dummy = new THREE.Object3D();
+            const colorObj = new THREE.Color();
+
+            for (let x = 0; x < size; x++) {
+                for (let y = 0; y < size; y++) {
+                    const noise = Math.abs((Math.sin(h + x * 0.3 + y * 0.5) * 50) % size);
+                    const height = Math.floor(noise) + 1;
+
+                    for (let z = 0; z < height; z++) {
+                        dummy.position.set(x - size/2, z, y - size/2);
+                        dummy.updateMatrix();
+                        instancedMesh.setMatrixAt(count, dummy.matrix);
+
+                        const colorHex = colors[Math.abs(h + z) % colors.length];
+                        instancedMesh.setColorAt(count, colorObj.setHex(colorHex));
+                        count++;
+                    }
+                }
+            }
+            
+            instancedMesh.count = count; // Nur die tatsächlich genutzten Instanzen zeichnen
+            instancedMesh.instanceMatrix.needsUpdate = true;
+            if (instancedMesh.instanceColor) instancedMesh.instanceColor.needsUpdate = true;
+            scene.add(instancedMesh);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        init();
+    </script>
+</body>
+</html>

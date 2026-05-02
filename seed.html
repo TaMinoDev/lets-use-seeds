@@ -5,7 +5,9 @@
         <meta charset="UTF-8">
         <style>
             body{
-                background-color: black;
+                background: repeating-linear-gradient(45deg, #000, #1e1e1e 25px, #000 25px, #1e1e1e 20px);
+                font-family: Arial, Helvetica, sans-serif;
+                color: white;
             }
             #main {
                 display: grid;
@@ -19,52 +21,123 @@
                 border: 1px solid #ddd;
                 background-color: white;
             }*/
+            #watchColor{
+                width: 450px;
+                height: 450px;
+                border: 10px solid white;
+                border-radius: 10%;
+                position: absolute;
+                top: 10px;
+                right: 10px;
+                font-size: 80px;
+                padding: 10px;
+                transition: ease-in-out 1.5s;
+                text-shadow: 2.5px 2.5px 5px black;
+            }
+            #realColor{
+                width: 150px;
+                height: 150px;
+                border: 5px solid white;
+                border-radius: 10%;/*
+                position: absolute;
+                top: 10px;
+                right: 500px;*/
+                font-size: 80px;
+                padding: 10px;
+                text-shadow: 2.5px 2.5px 5px black;
+            }
+            textarea{
+                width: 500px;
+                height: 250px;
+                padding: 2.5px;
+                border: none;
+                background-color: hsla(0, 0%, 50%, 0.25);
+                backdrop-filter: blur(15px);
+                -webkit-backdrop-filter: blur(15px);
+                border-radius: 10px;
+                outline: none;
+            }
         </style>
     </head>
     <body>
         <div id="main">
 
         </div>
-        <input type="text" id="seed"><button onclick="Seeding();">Anwenden</button>
+        <input type="text" id="seed"><button onclick="Seeding();">Anwenden</button><button onclick="randomPattern();">Zufälliges Muster</button><button onclick="randomSeed()">Zufälliger Seed</button>
         <hr>
         <input type="color" id="farbe">
+        <hr>
+        <br>
+        <div><div class="anzeige" id="anzeige"></div><div id="watchColor"></div><div id="realColor"></div></div>
+        <textarea id="makeCode">
+                        function colorBlack(){
+                            const divs = document.querySelectorAll('button[data-hue]');
+                            let gefunden = false;
+                            divs.forEach((e) => {
+                                        if(e.dataset.color.endsWith('), 0') === true){
+                                                setTimeout(() => {alert('SIEG bei ' + e.id);},500);
+                                                gefunden = true;
+                                        }
+                                            if(e.id == '256' && gefunden === false){
+                                                setTimeout(() => {
+                                                    randomPattern();
+                                                    colorBlack();
+                                                                },1000);}
+                        });
+                                        }
+                        colorBlack();
+        </textarea><button onclick="setAlgo()">Ausführen</button>
         <script>
+            const anzeige = document.getElementById('anzeige');
+            const watchColor = document.getElementById('watchColor');
+            const realColor = document.getElementById('realColor');
+            const main = document.getElementById('main');
+            const makeCode = document.getElementById('makeCode');
+
             // Generate Pattern //
             let bisher = 0;
             let stellen = 0;
             let ziel = 256;
             let wert = 1;
-            let startColor = '#ffffff';
+            let startColor = 'hsl(240,100%,50%)';
+            let selectet;
 
             document.getElementById('farbe').addEventListener('change',(e) => {
                 bisher = 0;
                 stellen = 0;
                 ziel = 256;
                 wert = 1;
-                document.getElementById('main').innerHTML = '';
+                main.innerHTML = '';
                 startColor = document.getElementById('farbe').value;
                 console.warn(document.getElementById('farbe').value);
                 make();
             });
+
+            function setAlgo(){
+                let code = makeCode.value;
+                eval(code);
+                alert(`Der code wurde ausgeführt (\n${code})`);
+            }
 
             function reset(){
                 bisher = 0;
                 stellen = 0;
                 ziel = 256;
                 wert = 1;
-                startColor = '#0000ff';
-                document.getElementById('main').innerHTML = '';
+                startColor = 'hsl(240,100%,50%)';
+                main.innerHTML = '';
                 make();
             }
+            // Erstellen der Knöpfe
             function make(){
                 const diver = document.createElement('button');
                 diver.id = wert;
-                diver.dataset.hue = 0;
+                diver.dataset.hue = 240;
                 diver.dataset.color = startColor;
                 diver.style = 'border: 1px solid #ccc; background-color: ' + startColor + '; width: 25px; height: 25px;';
                 diver.style.backgroundColor = diver.dataset.hue;
                 diver.onclick = () => {alert(diver.id);};
-                document.getElementById('main').appendChild(diver);
+                main.appendChild(diver);
                 if(document.getElementById(diver.id)){
                     console.log('Diver mit id ' + diver.id + ' und hue ' + diver.dataset.hue + ' erstellt');
                 }
@@ -95,11 +168,33 @@
                 console.log(bisher);
                 if(bisher === ziel){
                     console.log('Erfolg, ziel von ' + ziel + ' erreicht mit ' + bisher + ' divern');
+                    const divs = document.querySelectorAll('button[data-hue]');
+                    divs.forEach((e) => {
+                        e.addEventListener('mouseenter',(b) => {
+                            Select(e.id);
+                        });
+                    });
                 }else {
                     setTimeout(make,10);
                 }
             }
             reset();
+            // Select
+            function Select(id){
+                const obj = document.getElementById(id);
+                selectet = [id];
+
+                anzeige.innerText = `ID: ${obj.id}
+                Farbe: ${obj.style.backgroundColor}
+                Data-Hue: ${obj.dataset.hue}
+                Data-Color: ${obj.dataset.color}`;
+
+                watchColor.style.backgroundColor = obj.style.backgroundColor;
+                watchColor.innerText = `${obj.id}\n${obj.style.backgroundColor}\n${obj.dataset.hue} deg`;
+
+                realColor.style.backgroundColor = obj.style.backgroundColor;
+            }
+
             // Seeding //
             const seedInput = document.getElementById('seed');
             
@@ -173,17 +268,54 @@
                         seeded = seeded.toFixed(0);
                     }else {
                         seeded = seeded+e.id;
-                        if(seeded >= 360){
-                            seeded = seeded/e.id;
+                        if(seeded >= 360){zufällig
+                            seeded = seeded/360+e.id;
                             seeded = seeded.toFixed(0);
                         }
                     }
-                    e.style.filter = 'hue-rotate(' + seeded + 'deg)';
+                    e.style.backgroundColor = `hsl(${seeded},100%,50%)`;
                     e.dataset.hue = seeded;
+                    e.dataset.color = `hsl(${seeded},100%,50%)`;
+                    e.onclick = () => {alert('ID: ' + e.id + ' Farbe: ' + hslToHex(seeded,100,50));};
                     console.log(seeded);
                 });
             }
+            function hslToHex(h, s, l) {
+                let H = Number(h);
+                let S = Number(s);
+                let L = Number(l);
+                L /= 100;
+                const a = S * Math.min(L, 1 - L) / 100;
+                const f = n => {
+                    const k = (n + H / 30) % 12;
+                    const color = L - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+                    return Math.round(255 * color).toString(16).padStart(2, '0');
+                };
+                return `#${f(0)}${f(8)}${f(4)}`;
+                }
+
+            function random(min, max) {seedInput.value
+                min = Math.ceil(min);
+                max = Math.floor(max);
+                return Math.floor(Math.random() * (max - min)) + min;
+            }
+
+            function randomPattern(){
+                const divs = document.querySelectorAll('button[data-hue]');
+                divs.forEach((e) => {
+                    let hueWert = parseFloat(random(0,360));
+                    let satWert = parseFloat(random(0,100));
+                    let helWert = parseFloat(random(0,100));
+                    e.dataset.hue = hueWert;
+                    e.style.backgroundColor = 'hsl(' + hueWert + ',' + satWert + '%,' + helWert + '%)';
+                    e.dataset.color = e.style.backgroundColor + ', ' + helWert;
+                });
+            }
             
+            function randomSeed(){
+                let wert = random(100000,99999999);
+                seedInput.value = wert;
+            }
         </script>
     </body>
 </html>
